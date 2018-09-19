@@ -7,7 +7,18 @@
 #include<sys/socket.h>
 #include<arpa/inet.h> //inet_addr
 #include<unistd.h>    //write
-
+#include<ctype.h>
+#include<iostream>
+using namespace std;
+struct TrackerContent
+{
+  char * IpAddress;
+	char * port;
+	int iport;
+  //pointer to 20 byte data buffers of the sha1sum of each of the pieces:
+  char * piece_hashes;
+  char * file_Name;
+}trackerContent1;
 int createSocket(){
 int socket_desc;
   socket_desc = socket(AF_INET , SOCK_STREAM , 0);
@@ -35,6 +46,17 @@ int binding(int socket_desc,struct sockaddr_in * server){
   printf("bind done\n");
   return 0;
 }
+void writeToFile(struct TrackerContent  t){
+  	FILE *filewrite = fopen("seederList.txt", "a");
+    fputs (t.IpAddress,filewrite);
+    fputs (" ",filewrite);
+    fputs (t.port,filewrite);
+    fputs (" ",filewrite);
+    fputs (t.piece_hashes,filewrite);
+    fputs (" ",filewrite);
+    fputs (t.file_Name,filewrite);
+    fclose(filewrite);
+}
 int readmsgfromClient(int client_sock,char *client_message){
   int read_size;
   while( (read_size = recv(client_sock , client_message , 2000 , 0)) > 0 )
@@ -43,9 +65,45 @@ int readmsgfromClient(int client_sock,char *client_message){
       for(int i=0;i<strlen(client_message);i++)
       printf("%c",client_message[i]);
       printf("\n");
-    //  printf("received msg: %s\n",client_message);
+      char *token;int cnt=0;char ip[20];char port[6];char hash[10000];char filename[100];
+    	token = strtok ((char *)client_message," ");
+    	while (token != NULL ){
+        if(cnt==0)
+        strcpy(ip,token);
+        if(cnt==1)
+        strcpy(port,token);
+        if(cnt==2)
+        strcpy(hash,token);
+        if(cnt==3)
+        strcpy(filename,token);
+    		cout<<token<<endl;
+        cnt++;
+    		token = strtok (NULL, " ");
+    	}
+      trackerContent1.IpAddress = ip;
+      trackerContent1.port = port;
+      trackerContent1.iport = atoi(port);
+      trackerContent1.piece_hashes = hash;
+      trackerContent1.file_Name = filename;
+      writeToFile(trackerContent1);
+    /*  int i,j=0;char * in1;int cnt=0;
+      for(int i=0;i<strlen(client_message);i++){
+        if (!isspace(input.at(i))){
+            in1[j]=input[i];
+            j++;
+        }
+        else{
+          in1[j]='\0';
+          j=0;
+          cnt++;
+        }
+          //break;
+      }
+      */
+          //  printf("received msg: %s\n",client_message);
       //Send the message back to client
-      write(client_sock , client_message , strlen(client_message));
+      //write(client_sock , client_message , strlen(client_message));
+      write(client_sock , "msg received" , strlen(client_message));
       memset(client_message, NULL, 2000);
   }
   return read_size;
