@@ -48,9 +48,12 @@ string computeSHA(char * filename,char *filename2,unsigned long long fileSize){
 	FILE *fileread = fopen(filename, "rb");
 	FILE *filewrite = fopen(filename2, "a");
 	fputs ("127.0.0.1 8888 ",filewrite);
+	fputs ("\n",filewrite);
 	fputs ("127.0.0.1 7777 ",filewrite);
+	fputs ("\n",filewrite);
 	fputs (filename,filewrite);
-	fputs (" ",filewrite);
+	fputs ("\n",filewrite);
+	//fputs (" ",filewrite);
 	const int n = snprintf(NULL, 0, "%llu", fileSize);
 	assert(n > 0);
 	char buf[n+1];
@@ -60,7 +63,8 @@ string computeSHA(char * filename,char *filename2,unsigned long long fileSize){
 
 
 	fputs (buf,filewrite);
-	fputs (" ",filewrite);
+	fputs ("\n",filewrite);
+	//fputs (" ",filewrite);
 	if(fileread == NULL){
 		cout<<"Unable to open file "<<filename<<endl;
 		return NULL;
